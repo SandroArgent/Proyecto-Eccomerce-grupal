@@ -26,3 +26,5 @@ const run = async () => {
 };
 
 run();
+
+// PARA CREAR ADMIN, EJEMPLO: node src/scripts/seedAdmin.js "Sandro" "sandroadmin@gmail.com" "Admin123456"

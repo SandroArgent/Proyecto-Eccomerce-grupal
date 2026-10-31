@@ -72,6 +72,12 @@ function Login() {
             placeholder="••••••••"
             required
           />
+          {/* MÓDULO B: acceso a la recuperación de contraseña */}
+          <div className="mt-1 text-right">
+            <Link to="/olvide-clave" className="text-xs font-medium text-indigo-600 hover:text-indigo-500">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </div>
 
         <button
