@@ -37,18 +37,3 @@ router.use('/categorias', categoriaRoutes);
 router.use('/administradores', verificarAdmin, administradorRoutes);
 
 export default router;
-
-
-
-
-
-/* 
-¿Que es una ruta? Las rutas son los puntos de acceso (endpoints) que escuchan las peticiones que manda el frontend en React.
-Rutas, solo llaman al controlador. Se crean cada una y conectan con la operacion del controlador a la que la ruta quiere invocar. Se unifica en index.js
-    Su única función es recibir la petición HTTP (GET, POST, PUT, DELETE) y derivarla al controlador correspondiente.
-
-FLUJO
-routes/index.js  →  app.js  →  server.js
-  (agrega)          (monta)     (levanta)  
-
-El archivo de ruta individual solo decide qué controlador llamar */

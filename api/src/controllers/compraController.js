@@ -1,4 +1,6 @@
 import { sequelize, Compra, CompraProducto, Producto, Usuario } from '../models/index.js';
+// MÓDULO B: servicio de mensajería (mails de pedido y de cambio de estado).
+import { notificarPedidoCreado, notificarCambioEstado } from '../services/mailService.js';
 
 // GET /compras — historial de compras DEL USUARIO LOGUEADO.
 // Es el equivalente a "GET /api/orders/my-orders" de la consigna: tu DER
@@ -60,9 +62,19 @@ export const actualizarEstadoCompraAdmin = async (req, res) => {
       });
     }
 
+    // MÓDULO B: guardamos el estado anterior para avisar solo si de verdad cambió.
+    const estadoAnterior = compra.estadoEnvio;
+
     await compra.update({
       estadoEnvio: req.body.estadoEnvio,
     });
+
+    // MÓDULO B — mail al cliente avisando el nuevo estado. Va DESPUÉS de
+    // guardar en la base, y sin "await" (sale en segundo plano). Si el admin
+    // vuelve a elegir el mismo estado, no se manda nada.
+    if (req.body.estadoEnvio && req.body.estadoEnvio !== estadoAnterior) {
+      notificarCambioEstado(compra.id, req.body.estadoEnvio);
+    }
 
     res.json({
       estado: true,
@@ -161,6 +173,12 @@ export const crearCompra = async (req, res) => {
 
     // Si todo salió bien, recién acá se confirman los cambios en la base.
     await t.commit();
+
+    // MÓDULO B — mail al cliente (comprobante) y mail al administrador
+    // (aviso de pedido nuevo). Va DESPUÉS del commit: si la compra no se
+    // llegó a guardar, no tiene sentido avisarle a nadie. Sin "await": el
+    // mail sale en segundo plano y no demora la respuesta al cliente.
+    notificarPedidoCreado(compra.id);
 
     const compraCompleta = await Compra.findByPk(compra.id, {
       include: [{ model: CompraProducto, include: [Producto] }],

@@ -5,8 +5,18 @@
 // Cada uno genera un JWT distinto, por eso un token de usuario no sirve
 // para acceder a rutas de admin, y viceversa.
 
-import { compararPassword, generarToken, JWT_SECRET_USUARIO, JWT_SECRET_ADMIN } from '../utils/auth.js';
+import {
+  compararPassword,
+  generarToken,
+  JWT_SECRET_USUARIO,
+  JWT_SECRET_ADMIN,
+  generarTokenRecuperacion,
+  leerIdDeTokenRecuperacion,
+  verificarTokenRecuperacion,
+} from '../utils/auth.js';
 import { Usuario, Administrador, Carrito } from '../models/index.js';
+// MÓDULO B: funciones del servicio de mensajería (ver services/mailService.js).
+import { enviarBienvenida, enviarRecuperacionClave } from '../services/mailService.js';
 
 /**
  * loginUsuario
@@ -110,6 +120,14 @@ export const registrarUsuario = async (req, res) => {
     // uno disponible apenas se registra (relación 1:1 del DER).
     await Carrito.create({ idUsuario: usuario.id });
 
+    // MÓDULO B — mail de bienvenida.
+    // OJO: no lleva "await" a propósito. Mandar un mail puede tardar unos
+    // segundos; con "await" el usuario se quedaría esperando en la pantalla
+    // de registro hasta que el mail salga. Sin "await" la función arranca,
+    // y el código sigue de largo respondiendo al instante. Es seguro porque
+    // enviarBienvenida() nunca tira errores (los captura ella misma).
+    enviarBienvenida(usuario);
+
     const token = generarToken({ id: usuario.id }, JWT_SECRET_USUARIO);
 
     res.status(201).json({
@@ -210,6 +228,118 @@ export const loginAdmin = async (req, res) => {
     res.status(500).json({
       estado: false,
       mensaje: 'Error al iniciar sesión',
+      error: error.message,
+    });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────
+// MÓDULO B — Recuperación de contraseña (2 pasos)
+// ─────────────────────────────────────────────────────────────────────
+//   Paso 1: POST /api/auth/usuario/olvide-clave       { email }
+//           -> si el email existe, se le manda un mail con un enlace.
+//   Paso 2: POST /api/auth/usuario/restablecer-clave  { token, contraseña }
+//           -> el token viene del enlace del mail; se guarda la clave nueva.
+
+/**
+ * olvideClave (paso 1)
+ * Recibe un email y, si pertenece a un usuario, le manda el mail con el enlace.
+ */
+export const olvideClave = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        estado: false,
+        mensaje: 'Debe proporcionar un email',
+      });
+    }
+
+    const usuario = await Usuario.findOne({ where: { email } });
+
+    if (usuario) {
+      const token = generarTokenRecuperacion(usuario);
+      // Sin "await" (igual que en el registro): el mail sale en segundo plano.
+      enviarRecuperacionClave(usuario, token);
+    }
+
+    // SEGURIDAD: respondemos EXACTAMENTE lo mismo exista o no el email.
+    // Si dijéramos "ese email no está registrado", cualquiera podría usar
+    // este formulario para averiguar qué personas tienen cuenta en la tienda.
+    res.json({
+      estado: true,
+      mensaje:
+        'Si el email está registrado, te enviamos un correo con las instrucciones para restablecer tu contraseña.',
+    });
+  } catch (error) {
+    console.error('Error en olvideClave:', error);
+    res.status(500).json({
+      estado: false,
+      mensaje: 'No se pudo procesar la solicitud',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * restablecerClave (paso 2)
+ * Recibe el token del enlace y la contraseña nueva. Si el token es válido,
+ * guarda la nueva contraseña.
+ *
+ * Nota: los errores de acá devuelven 400 y NO 401. Es a propósito: el
+ * interceptor de Axios del frontend manda al login ante cualquier 401/403, y
+ * acá el usuario justamente todavía no está logueado.
+ */
+export const restablecerClave = async (req, res) => {
+  try {
+    const { token, contraseña } = req.body;
+
+    if (!token || !contraseña) {
+      return res.status(400).json({
+        estado: false,
+        mensaje: 'Faltan datos: se necesita el token y la nueva contraseña',
+      });
+    }
+
+    if (contraseña.length < 6) {
+      return res.status(400).json({
+        estado: false,
+        mensaje: 'La contraseña debe tener al menos 6 caracteres',
+      });
+    }
+
+    // 1) ¿De qué usuario es este token? (todavía sin confiar en él)
+    const idUsuario = leerIdDeTokenRecuperacion(token);
+    const usuario = idUsuario ? await Usuario.findByPk(idUsuario) : null;
+
+    const mensajeInvalido = 'El enlace no es válido o ya venció. Pedí uno nuevo.';
+
+    if (!usuario) {
+      return res.status(400).json({ estado: false, mensaje: mensajeInvalido });
+    }
+
+    // 2) Ahora sí: verificar firma, vencimiento y que no se haya usado antes.
+    try {
+      verificarTokenRecuperacion(token, usuario);
+    } catch {
+      return res.status(400).json({ estado: false, mensaje: mensajeInvalido });
+    }
+
+    // 3) Guardar la contraseña nueva. Al hacer save(), el hook "beforeUpdate"
+    // del modelo Usuario la encripta solo (igual que en el registro).
+    usuario.contraseña = contraseña;
+    await usuario.save();
+
+    res.json({
+      estado: true,
+      mensaje: 'Tu contraseña se actualizó correctamente. Ya podés iniciar sesión.',
+    });
+  } catch (error) {
+    console.error('Error en restablecerClave:', error);
+    res.status(500).json({
+      estado: false,
+      mensaje: 'No se pudo restablecer la contraseña',
       error: error.message,
     });
   }

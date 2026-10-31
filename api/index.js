@@ -20,9 +20,3 @@ const iniciarServidor = async () => {
 };
 
 iniciarServidor();
-
-
-/* index (archivo raiz)
-Es el archivo que levanta la aplicación.
-Importa la aplicación Express configurada en src/app.js, conecta la base de datos mediante Sequelize y pone a escuchar al servidor en el puerto asignado (por ejemplo, el puerto 3000).
-*/

@@ -15,6 +15,8 @@ import Checkout from './pages/Checkout.jsx'
 import MisPedidos from './pages/MisPedidos.jsx'
 import Login from './pages/Login.jsx'
 import Registro from './pages/Registro.jsx'
+import OlvideClave from './pages/OlvideClave.jsx'
+import RestablecerClave from './pages/RestablecerClave.jsx'
 import Perfil from './pages/Perfil.jsx'
 import AdminLogin from './pages/admin/AdminLogin.jsx'
 import AdminProductos from './pages/admin/AdminProductos.jsx'
@@ -44,6 +46,9 @@ function App() {
                         <Route path="/carrito" element={<Carrito />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/registro" element={<Registro />} />
+                        {/* MÓDULO B: recuperación de contraseña */}
+                        <Route path="/olvide-clave" element={<OlvideClave />} />
+                        <Route path="/restablecer-clave" element={<RestablecerClave />} />
                         <Route
                           path="/perfil"
                           element={
