@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { actualizarEstadoCompra } from "../../services/adminCompraService.js";
 
 
 function ComprasTable({ compras }) {
@@ -35,6 +36,28 @@ function ComprasTable({ compras }) {
       </div>
     );
   }
+
+
+  const handleCambioEstado = async (
+  id,
+  nuevoEstado
+) => {
+  try {
+    await actualizarEstadoCompra(
+      id,
+      nuevoEstado
+    );
+
+    window.location.reload();
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      "No se pudo actualizar el estado"
+    );
+  }
+};
+
 
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-800">
@@ -90,14 +113,39 @@ function ComprasTable({ compras }) {
               </td>
 
               <td className="px-4 py-3">
-                <span
-                  className={`rounded-full px-2 py-1 text-xs font-medium ${claseEstado(
-                    compra.estadoEnvio
-                  )}`}
-                >
-                  {compra.estadoEnvio}
-                </span>
-              </td>
+  <select
+    value={compra.estadoEnvio}
+    onChange={(e) =>
+      handleCambioEstado(
+        compra.id,
+        e.target.value
+      )
+    }
+    className={`rounded-lg px-2 py-1 text-xs font-medium ${claseEstado(
+      compra.estadoEnvio
+    )}`}
+  >
+    <option value="pendiente">
+      Pendiente
+    </option>
+
+    <option value="preparacion">
+      Preparación
+    </option>
+
+    <option value="enviado">
+      Enviado
+    </option>
+
+    <option value="entregado">
+      Entregado
+    </option>
+
+    <option value="cancelado">
+      Cancelado
+    </option>
+  </select>
+</td>
 
               <td className="px-4 py-3 text-center">
                 {compra.CompraProductos?.length || 0}
