@@ -86,3 +86,21 @@ export {
   Categoria,
   Administrador,
 };
+
+
+/* 
+FLUJO (Exportacion e importaciones)
+models/index.js  →  controllers  →  routes  →  cliente
+  (exporta)         (importa)      (usa) 
+  
+  En cada controlador hacés un require (o import) del models/index.js y usás los modelos que necesitás: 
+    
+
+¿Por que exportar Secualize?
+  Porque la instancia sequelize es la conexión con la base de datos. Los modelos ya la usan internamente, pero a veces la necesitás directamente para:
+
+    Transacciones: sequelize.transaction()
+    Consultas SQL raw: sequelize.query('SELECT ...')
+    Sincronizar/forzar tablas: sequelize.sync({ force: true })
+    Cerrar la conexión: sequelize.close()
+  En resumen: los modelos son las tablas; sequelize es el cable que las conecta a la base de datos. A veces necesitás el cable directamente. */
