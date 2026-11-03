@@ -21,6 +21,9 @@ function AdminCategorias() {
   const [guardando, setGuardando] = useState(false);
   const [errorForm, setErrorForm] = useState('');
   const [mensajeExito, setMensajeExito] = useState('');
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [busqueda, setBusqueda] = useState('');
+
 
   const cargarDatos = useCallback(async () => {
     setCargando(true);
@@ -45,6 +48,37 @@ function AdminCategorias() {
     const timer = setTimeout(() => setMensajeExito(''), 3000);
     return () => clearTimeout(timer);
   }, [mensajeExito]);
+
+  useEffect(() => {
+  setPaginaActual(1);
+}, [busqueda]);
+
+
+  const categoriasFiltradas = categorias.filter(
+  (categoria) =>
+    categoria.nombre
+      .toLowerCase()
+      .includes(busqueda.toLowerCase())
+);
+
+  const categoriasPorPagina = 10;
+
+const indiceUltimaCategoria =
+  paginaActual * categoriasPorPagina;
+
+const indicePrimeraCategoria =
+  indiceUltimaCategoria - categoriasPorPagina;
+
+const categoriasPaginadas =
+  categoriasFiltradas.slice(
+    indicePrimeraCategoria,
+    indiceUltimaCategoria
+  );
+
+const totalPaginas = Math.ceil(
+  categoriasFiltradas.length /
+  categoriasPorPagina
+);
 
   const handleGuardar = async (datos) => {
     setGuardando(true);
@@ -98,6 +132,16 @@ function AdminCategorias() {
         )}
       </div>
 
+      <input
+        type="text"
+        placeholder="Buscar categoría..."
+        value={busqueda}
+        onChange={(e) =>
+          setBusqueda(e.target.value)
+        }
+        className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200"
+      />
+
       {mensajeExito && (
         <div className="rounded-lg border border-green-800 bg-green-950 p-3 text-sm text-green-300">
           {mensajeExito}
@@ -123,11 +167,45 @@ function AdminCategorias() {
         <p className="text-slate-400">Cargando categorías...</p>
       ) : (
         <CategoriasTable
-          categorias={categorias}
+          categorias={categoriasPaginadas}
           onEditar={setEditando}
           onEliminar={handleEliminar}
         />
       )}
+
+// Paginación
+      <div className="flex items-center justify-center gap-4 pt-4">
+        <button
+          onClick={() =>
+            setPaginaActual((prev) =>
+              Math.max(prev - 1, 1)
+            )
+          }
+          disabled={paginaActual === 1}
+          className="rounded-lg border border-slate-700 px-4 py-2 text-slate-300 disabled:opacity-40"
+        >
+          ← Anterior
+        </button>
+        
+        <span className="text-slate-300">
+          Página {paginaActual} de {totalPaginas || 1}
+        </span>
+        
+        <button
+          onClick={() =>
+            setPaginaActual((prev) =>
+              Math.min(prev + 1, totalPaginas)
+            )
+          }
+          disabled={paginaActual === totalPaginas}
+          className="rounded-lg border border-slate-700 px-4 py-2 text-slate-300 disabled:opacity-40"
+        >
+          Siguiente →
+        </button>
+      </div>
+
+
+
     </div>
   );
 }

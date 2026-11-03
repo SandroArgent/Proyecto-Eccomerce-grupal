@@ -9,6 +9,7 @@ import ProductoModel from './Producto.js';
 import ProductoPorCarritoModel from './ProductoPorCarrito.js';
 import ImagenProductoModel from './ImagenProducto.js';
 import CategoriaModel from './Categoria.js';
+import MarcaModel from './Marca.js';
 import AdministradorModel from './Administrador.js';
 
 const Usuario = UsuarioModel(sequelize);
@@ -21,6 +22,7 @@ const Producto = ProductoModel(sequelize);
 const ProductoPorCarrito = ProductoPorCarritoModel(sequelize);
 const ImagenProducto = ImagenProductoModel(sequelize);
 const Categoria = CategoriaModel(sequelize);
+const Marca = MarcaModel(sequelize);
 const Administrador = AdministradorModel(sequelize);
 
 // Usuario - Telefono (1:n)
@@ -84,5 +86,6 @@ export {
   ProductoPorCarrito,
   ImagenProducto,
   Categoria,
+  Marca,
   Administrador,
 };

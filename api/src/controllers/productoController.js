@@ -9,7 +9,24 @@ export const getProductos = async (req, res) => {
   const { categoria, q, page = 1, limit = 12, destacado } = req.query;
 
   const where = {};
-  if (categoria) where.idCategoria = categoria;
+  if (categoria) {
+  const categoriaId = Number(categoria);
+
+  const categoriasHijas = await Categoria.findAll({
+    where: {
+      idCategoriaPadre: categoriaId,
+    },
+  });
+
+  const categoriasPermitidas = [
+    categoriaId,
+    ...categoriasHijas.map((c) => c.id),
+  ];
+
+  where.idCategoria = {
+    [Op.in]: categoriasPermitidas,
+  };
+}
   if (destacado !== undefined) where.destacado = destacado === 'true';
   if (q) where.nombre = { [Op.like]: `%${q}%` };
 
@@ -48,16 +65,111 @@ export const getProductoPorId = async (req, res) => {
   res.json({ estado: true, data: producto });
 };
 
-export const crearProducto = async (req, res) => {
-  const nuevoProducto = await Producto.create(req.body);
-  res.status(201).json(nuevoProducto);
+export const crearProducto = async (
+  req,
+  res
+) => {
+  try {
+    const {
+      imagenes,
+      ...datosProducto
+    } = req.body;
+
+    const nuevoProducto =
+      await Producto.create(
+        datosProducto
+      );
+
+    if (
+      Array.isArray(imagenes)
+    ) {
+      const urlsValidas =
+        imagenes.filter(
+          (url) => url.trim() !== ''
+        );
+
+      for (const url of urlsValidas) {
+        await ImagenProducto.create({
+          nombre:
+            nuevoProducto.nombre,
+
+          urlImagen: url,
+
+          idProducto:
+            nuevoProducto.id,
+        });
+      }
+    }
+
+    res.status(201).json(
+      nuevoProducto
+    );
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      mensaje:
+        'Error al crear producto',
+    });
+  }
 };
 
-export const actualizarProducto = async (req, res) => {
-  const producto = await Producto.findByPk(req.params.id);
-  if (!producto) return res.status(404).json({ mensaje: 'Producto no encontrado' });
-  await producto.update(req.body);
-  res.json(producto);
+export const actualizarProducto = async (
+  req,
+  res
+) => {
+  try {
+    const producto = await Producto.findByPk(
+      req.params.id
+    );
+
+    if (!producto) {
+      return res.status(404).json({
+        mensaje: 'Producto no encontrado',
+      });
+    }
+
+    const {
+      imagenes,
+      ...datosProducto
+    } = req.body;
+
+    await producto.update(datosProducto);
+
+    if (Array.isArray(imagenes)) {
+      // Eliminar imágenes viejas
+      await ImagenProducto.destroy({
+        where: {
+          idProducto: producto.id,
+        },
+      });
+
+      // Crear imágenes nuevas
+      const urlsValidas =
+        imagenes.filter(
+          (url) =>
+            typeof url === 'string' &&
+            url.trim() !== ''
+        );
+
+      for (const url of urlsValidas) {
+        await ImagenProducto.create({
+          nombre: producto.nombre,
+          urlImagen: url,
+          idProducto: producto.id,
+        });
+      }
+    }
+
+    res.json(producto);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      mensaje:
+        'Error al actualizar producto',
+    });
+  }
 };
 
 export const eliminarProducto = async (req, res) => {

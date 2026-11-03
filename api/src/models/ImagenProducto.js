@@ -5,6 +5,10 @@ export default (sequelize) => {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     nombre: DataTypes.STRING,
     urlImagen: DataTypes.STRING,
+    idProducto: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   }, {
     tableName: 'imagenes_producto',
     timestamps: false,

@@ -7,11 +7,19 @@ import { Link } from 'react-router-dom';
 function ProductoCard({ producto, onAgregarAlCarrito }) {
   const sinStock = producto.stock <= 0;
 
+  const imagenPrincipal =
+  producto.ImagenProductos?.[0]?.urlImagen  ||
+  producto.imagen;
+
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
       <Link to={`/productos/${producto.id}`} className="aspect-square overflow-hidden bg-slate-100">
-        {producto.imagen ? (
-          <img src={producto.imagen} alt={producto.nombre} className="h-full w-full object-cover" />
+        {imagenPrincipal ? (
+  <img
+    src={imagenPrincipal}
+    alt={producto.nombre}
+    className="h-full w-full object-cover"
+  />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-slate-400">Sin imagen</div>
         )}

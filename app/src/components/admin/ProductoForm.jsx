@@ -3,10 +3,12 @@
 // si viene vacío ({}), es un alta nueva. El feedback visual (mensajes de
 // error, botón deshabilitado mientras guarda) lo maneja este componente.
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { obtenerMarcas } from '../../services/marcaService.js';
 
 function ProductoForm({ producto, categorias, onGuardar, onCancelar, guardando, error }) {
   const esEdicion = Boolean(producto?.id);
+  const [marcas, setMarcas] = useState([]);
 
   const [form, setForm] = useState({
     nombre: producto?.nombre || '',
@@ -17,7 +19,45 @@ function ProductoForm({ producto, categorias, onGuardar, onCancelar, guardando, 
     imagen: producto?.imagen || '',
     destacado: producto?.destacado || false,
     idCategoria: producto?.idCategoria || '',
+    imagenes: [
+    '',
+    '',
+    '',
+    '',
+  ],
   });
+
+useEffect(() => {
+  const cargarMarcas = async () => {
+    try {
+      const data = await obtenerMarcas();
+      setMarcas(data);
+    } catch (error) {
+      console.error(
+        'Error al cargar marcas:',
+        error
+      );
+    }
+  };
+
+  cargarMarcas();
+}, []);
+
+const handleImagenChange = (
+  index,
+  value
+) => {
+  const nuevasImagenes = [
+    ...form.imagenes,
+  ];
+
+  nuevasImagenes[index] = value;
+
+  setForm((prev) => ({
+    ...prev,
+    imagenes: nuevasImagenes,
+  }));
+};
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -110,22 +150,14 @@ function ProductoForm({ producto, categorias, onGuardar, onCancelar, guardando, 
     className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
   >
     <option value="">Selecciona una marca</option>
-    <option value="Yamaha">Yamaha</option>
-    <option value="Fender">Fender</option>
-    <option value="Gibson">Gibson</option>
-    <option value="Roland">Roland</option>
-    <option value="Casio">Casio</option>
-    <option value="Tama">Tama</option>
-    <option value="Pearl">Pearl</option>
-    <option value="Cremona">Cremona</option>
-    <option value="Ernie Ball">Ernie Ball</option>
-    <option value="DAddario">Daddario</option>
-    <option value="Dunlop">Dunlop</option>
-    <option value="Shure">Shure</option>
-    <option value="Audio-Technica">Audio-Technica</option>
-    <option value="Boss">Boss</option>
-    <option value="Hercules">Hercules</option>
-    <option value="Vic Firth">Vic Firth</option>
+   {marcas.map((marca) => (
+      <option
+        key={marca.id}
+        value={marca.nombre}
+      >
+        {marca.nombre}
+      </option>
+    ))}
   </select>
 </div>
 
@@ -146,14 +178,42 @@ function ProductoForm({ producto, categorias, onGuardar, onCancelar, guardando, 
         </div>
 
         <div className="col-span-2">
-          <label className="mb-1 block text-sm font-medium text-slate-300">Imagen (URL)</label>
-          <input
-            name="imagen"
-            value={form.imagen}
-            onChange={handleChange}
-            placeholder="https://..."
-            className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
-          />
+  <label className="mb-1 block text-sm font-medium text-slate-300">
+    Imagen principal
+  </label>
+
+  <input
+    name="imagen"
+    value={form.imagen}
+    onChange={handleChange}
+    placeholder="https://..."
+    className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+  />
+</div>
+
+       <div className="col-span-2 space-y-3">
+          <label className="mb-1 block text-sm font-medium text-slate-300">
+            Imágenes del producto
+          </label>
+                  
+          {form.imagenes.map(
+            (imagen, index) => (
+              <input
+                key={index}
+                value={imagen}
+                onChange={(e) =>
+                  handleImagenChange(
+                    index,
+                    e.target.value
+                  )
+                }
+                placeholder={`URL imagen ${
+                  index + 1
+                }`}
+                className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+              />
+            )
+          )}
         </div>
 
         <div className="col-span-2 flex items-center gap-2">

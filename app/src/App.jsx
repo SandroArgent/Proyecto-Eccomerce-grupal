@@ -20,6 +20,7 @@ import AdminLogin from './pages/admin/AdminLogin.jsx'
 import AdminProductos from './pages/admin/AdminProductos.jsx'
 import AdminCategorias from './pages/admin/AdminCategorias.jsx'
 import AdminCompras from './pages/admin/AdminCompras.jsx'
+import AdminMarcas from './pages/admin/AdminMarcas.jsx';
 
 import './App.css'
 
@@ -89,6 +90,7 @@ function App() {
                 <Route path="productos" element={<AdminProductos />} />
                 <Route path="categorias" element={<AdminCategorias />} />
                 <Route path="compras" element={<AdminCompras />} />
+                <Route path="/admin/marcas" element={<AdminMarcas />} />
                 
                 
               </Route>
