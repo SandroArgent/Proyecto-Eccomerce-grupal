@@ -33,6 +33,7 @@ function AdminLayout() {
         <nav className="space-y-1 p-2">
           <NavLink to="/admin/productos" className={linkClass}>Productos</NavLink>
           <NavLink to="/admin/categorias" className={linkClass}>Categorías</NavLink>
+          <NavLink to="/admin/marcas" className={linkClass}>  Marcas </NavLink>
            <NavLink to="/admin/compras" className={linkClass}>compras</NavLink>
         </nav>
 

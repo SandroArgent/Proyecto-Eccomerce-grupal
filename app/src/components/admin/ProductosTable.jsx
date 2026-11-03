@@ -4,26 +4,64 @@
 // ProductosTable.jsx — listado de productos en tabla, con filtros y paginación
 
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { useState } from "react";
+import { useState, useEffect  } from "react";
+import { obtenerMarcas } from "../../services/marcaService.js";
 
 function ProductosTable({ productos, categorias, onEditar, onEliminar }) {
   const [busqueda, setBusqueda] = useState("");
   const [marcaFiltro, setMarcaFiltro] = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
   const [paginaActual, setPaginaActual] = useState(1);
+  const [marcas, setMarcas] = useState([]);
   const productosPorPagina = 5;
+
+  useEffect(() => {
+  const cargarMarcas = async () => {
+    try {
+      const data = await obtenerMarcas();
+      setMarcas(data);
+    } catch (error) {
+      console.error(
+        "Error al cargar marcas:",
+        error
+      );
+    }
+  };
+
+  cargarMarcas();
+}, []);
 
   const nombreCategoria = (idCategoria) => {
     const categoria = categorias.find((c) => c.id === idCategoria);
     return categoria ? categoria.nombre : "—";
   };
 
+
+  //categorias permitidas dentro de categorias padres
+  const categoriasPermitidas = categoriaFiltro
+  ? [
+      Number(categoriaFiltro),
+
+      ...categorias
+        .filter(
+          (c) =>
+            c.idCategoriaPadre ===
+            Number(categoriaFiltro)
+        )
+        .map((c) => c.id),
+    ]
+  : [];
+
   // Filtrado (conversión de categoriaFiltro a número)
   const productosFiltrados = productos.filter((p) => {
     return (
       p.nombre.toLowerCase().includes(busqueda.toLowerCase()) &&
       (marcaFiltro ? p.marca === marcaFiltro : true) &&
-      (categoriaFiltro ? p.idCategoria === Number(categoriaFiltro) : true)
+      (categoriaFiltro
+  ? categoriasPermitidas.includes(
+      p.idCategoria
+    )
+  : true)
     );
   });
 
@@ -58,23 +96,18 @@ function ProductosTable({ productos, categorias, onEditar, onEliminar }) {
           onChange={(e) => setMarcaFiltro(e.target.value)}
           className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white text-sm"
         >
-          <option value="">Todas las marcas</option>
-          <option value="Yamaha">Yamaha</option>
-          <option value="Fender">Fender</option>
-          <option value="Gibson">Gibson</option>
-          <option value="Roland">Roland</option>
-          <option value="Casio">Casio</option>
-          <option value="Tama">Tama</option>
-          <option value="Pearl">Pearl</option>
-          <option value="Shure">Shure</option>
-          <option value="Boss">Boss</option>
-          <option value="DAddario">Daddario</option>
-          <option value="Dunlop">Dunlop</option>
-          <option value="Hercules">Hercules</option>
-          <option value="Vic Firth">Vic Firth</option>
-          <option value="Audio-Technica">Audio-Technica</option>
-          <option value="Ernie Ball">Ernie Ball</option>
-          <option value="Cremona">Cremona</option>
+          <option value="">
+            Todas las marcas
+          </option>
+            
+          {marcas.map((marca) => (
+            <option
+              key={marca.id}
+              value={marca.nombre}
+            >
+              {marca.nombre}
+            </option>
+          ))}
         </select>
 
         <select
@@ -144,21 +177,35 @@ function ProductosTable({ productos, categorias, onEditar, onEliminar }) {
       </div>
 
       {/* Paginación */}
-      <div className="flex gap-2 mt-4">
-        {Array.from({ length: totalPaginas }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => setPaginaActual(i + 1)}
-            className={`px-3 py-1 rounded ${
-              paginaActual === i + 1
-                ? "bg-indigo-600 text-white"
-                : "bg-slate-700 text-slate-300"
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
+     <div className="flex items-center justify-center gap-4 pt-4">
+  <button
+    onClick={() =>
+      setPaginaActual((prev) =>
+        Math.max(prev - 1, 1)
+      )
+    }
+    disabled={paginaActual === 1}
+    className="rounded-lg border border-slate-700 px-4 py-2 text-slate-300 disabled:opacity-40"
+  >
+    ← Anterior
+  </button>
+
+  <span className="text-slate-300">
+    Página {paginaActual} de {totalPaginas || 1}
+  </span>
+
+  <button
+    onClick={() =>
+      setPaginaActual((prev) =>
+        Math.min(prev + 1, totalPaginas)
+      )
+    }
+    disabled={paginaActual === totalPaginas}
+    className="rounded-lg border border-slate-700 px-4 py-2 text-slate-300 disabled:opacity-40"
+  >
+    Siguiente →
+  </button>
+</div>
     </div>
   );
 }

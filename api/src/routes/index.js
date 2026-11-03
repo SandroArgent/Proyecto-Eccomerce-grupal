@@ -11,6 +11,7 @@ import productoRoutes from './productoRoutes.js';
 import productoPorCarritoRoutes from './productoPorCarritoRoutes.js';
 import imagenProductoRoutes from './imagenProductoRoutes.js';
 import categoriaRoutes from './categoriaRoutes.js';
+import marcaRoutes from './marcaRoutes.js';
 import administradorRoutes from './administradorRoutes.js';
 import { verificarAdmin } from '../middleware/auth.js';
 
@@ -30,6 +31,7 @@ router.use('/productos', productoRoutes);
 router.use('/producto-por-carrito', productoPorCarritoRoutes);
 router.use('/imagenes-producto', imagenProductoRoutes);
 router.use('/categorias', categoriaRoutes);
+router.use('/marcas', marcaRoutes);
 
 // /administradores queda protegida: hace falta un token de admin válido
 // para listar, crear, editar o borrar administradores. Antes cualquiera
