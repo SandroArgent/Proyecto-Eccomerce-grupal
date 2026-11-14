@@ -177,6 +177,56 @@ export const perfilUsuario = async (req, res) => {
   }
 };
 
+
+export const actualizarPerfilUsuario = async (
+      req,
+      res
+    ) => {
+      try {
+        const usuario = await Usuario.findByPk(
+          req.usuario.id
+        );
+      
+        if (!usuario) {
+          return res.status(404).json({
+            estado: false,
+            mensaje: 'Usuario no encontrado',
+          });
+        }
+      
+        const {
+          nombre,
+          apellido,
+          email,
+        } = req.body;
+      
+        await usuario.update({
+          nombre,
+          apellido,
+          email,
+        });
+      
+        res.json({
+          estado: true,
+          mensaje:
+            'Perfil actualizado correctamente',
+          data: usuario,
+        });
+      } catch (error) {
+        console.error(
+          'Error en actualizarPerfilUsuario:',
+          error
+        );
+      
+        res.status(500).json({
+          estado: false,
+          mensaje:
+            'Error al actualizar perfil',
+          error: error.message,
+        });
+      }
+    };
+
 /**
  * loginAdmin
  * Recibe email y contraseña, valida contra el modelo Administrador y

@@ -40,6 +40,7 @@ export function AuthProvider({ children }) {
 
     try {
       const usuarioActualizado = await obtenerPerfilUsuario();
+
       localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
       setUsuario(usuarioActualizado);
     } catch (error) {
@@ -82,6 +83,7 @@ export function AuthProvider({ children }) {
 
   const value = {
     usuario,
+    setUsuario,
     token,
     isAuthenticated: !!usuario,
     cargando,

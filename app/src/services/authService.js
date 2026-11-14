@@ -18,6 +18,11 @@ export const obtenerPerfilUsuario = async () => {
   return api.get('/auth/usuario/perfil');
 };
 
+// PUT /api/auth/usuario/perfil -> Actualiza los datos del usuario logueado.
+export const actualizarPerfilUsuario = async (datos) => {
+  return api.put('/auth/usuario/perfil', datos);
+};
+
 // ── MÓDULO B: recuperación de contraseña ──
 
 // POST /api/auth/usuario/olvide-clave -> pide que se envíe el mail con el enlace.
