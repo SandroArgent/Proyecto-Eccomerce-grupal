@@ -89,7 +89,7 @@ useEffect(() => {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold text-white">
-        Compras
+        Ventas
       </h1>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
@@ -147,7 +147,7 @@ useEffect(() => {
         className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200"
       >
         <option value="todos">
-          Todas las compras
+          Todas las ventas
         </option>
       
         <option value="pendiente">

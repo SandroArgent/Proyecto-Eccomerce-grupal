@@ -3,6 +3,7 @@ import {
   loginUsuario,
   registrarUsuario,
   perfilUsuario,
+  actualizarPerfilUsuario,
   loginAdmin,
   olvideClave,
   restablecerClave,
@@ -22,6 +23,11 @@ router.post('/usuario/restablecer-clave', restablecerClave);
 
 // Ruta protegida: necesita un token de usuario válido (ver middleware/auth.js).
 router.get('/usuario/perfil', verificarUsuario, perfilUsuario);
+router.put(
+  '/usuario/perfil',
+  verificarUsuario,
+  actualizarPerfilUsuario
+);
 
 // Ruta pública de login de administrador.
 router.post('/admin/login', loginAdmin);
