@@ -2,7 +2,13 @@
 // Guarda el usuario logueado y el token JWT en memoria y en localStorage.
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { loginUsuario, registrarUsuario, obtenerPerfilUsuario } from '../services/authService.js';
+import {
+  loginUsuario,
+  registrarUsuario,
+  verificarRegistroUsuario,
+  reenviarCodigoUsuario,
+  obtenerPerfilUsuario,
+} from '../services/authService.js';
 
 const AuthContext = createContext(null);
 
@@ -40,6 +46,7 @@ export function AuthProvider({ children }) {
 
     try {
       const usuarioActualizado = await obtenerPerfilUsuario();
+
       localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
       setUsuario(usuarioActualizado);
     } catch (error) {
@@ -67,10 +74,16 @@ export function AuthProvider({ children }) {
     return respuesta.usuario;
   };
 
-  // Registrarse e iniciar sesión automáticamente
+  // Registro en 2 pasos.
+  // Paso 1: manda los datos y el backend envía un código al email (todavía no hay sesión).
   const registro = async (datos) => {
-    const respuesta = await registrarUsuario(datos);
-    // respuesta = { estado: true, mensaje, token, usuario: {...} }
+    return registrarUsuario(datos);
+  };
+
+  // Paso 2: confirma el código; si es correcto el backend crea la cuenta y
+  // devuelve { token, usuario }, así que dejamos la sesión iniciada.
+  const verificarRegistro = async (email, codigo) => {
+    const respuesta = await verificarRegistroUsuario(email, codigo);
     localStorage.setItem('token', respuesta.token);
     localStorage.setItem('usuario', JSON.stringify(respuesta.usuario));
 
@@ -80,13 +93,20 @@ export function AuthProvider({ children }) {
     return respuesta.usuario;
   };
 
+  const reenviarCodigo = async (email) => {
+    return reenviarCodigoUsuario(email);
+  };
+
   const value = {
     usuario,
+    setUsuario,
     token,
     isAuthenticated: !!usuario,
     cargando,
     login,
     registro,
+    verificarRegistro,
+    reenviarCodigo,
     logout,
   };
 

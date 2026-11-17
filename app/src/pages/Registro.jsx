@@ -6,11 +6,15 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 function Registro() {
   const navigate = useNavigate();
-  const { registro } = useAuth();
+  const { registro, verificarRegistro, reenviarCodigo } = useAuth();
 
   const [form, setForm] = useState({ nombre: '', apellido: '', email: '', contraseña: '' });
   const [error, setError] = useState('');
+  const [aviso, setAviso] = useState('');
   const [enviando, setEnviando] = useState(false);
+  // Paso 1: formulario de datos. Paso 2: código que llegó por mail.
+  const [paso, setPaso] = useState(1);
+  const [codigo, setCodigo] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,7 +33,8 @@ function Registro() {
     try {
       setEnviando(true);
       await registro(form);
-      navigate('/');
+      setCodigo('');
+      setPaso(2);
     } catch (err) {
       console.error('Error al registrarse:', err);
       setError(err.message || 'Error al crear la cuenta.');
@@ -37,6 +42,94 @@ function Registro() {
       setEnviando(false);
     }
   };
+
+  const handleConfirmar = async (e) => {
+    e.preventDefault();
+    setError('');
+    setAviso('');
+
+    try {
+      setEnviando(true);
+      await verificarRegistro(form.email, codigo);
+      navigate('/');
+    } catch (err) {
+      console.error('Error al confirmar el código:', err);
+      setError(err.message || 'No se pudo confirmar el código.');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  const handleReenviar = async () => {
+    setError('');
+    setAviso('');
+
+    try {
+      const respuesta = await reenviarCodigo(form.email);
+      setAviso(respuesta.mensaje || 'Te enviamos un código nuevo.');
+    } catch (err) {
+      setError(err.message || 'No se pudo reenviar el código.');
+    }
+  };
+
+  // Paso 2: ingresar el código recibido por mail.
+  if (paso === 2) {
+    return (
+      <div className="mx-auto max-w-md space-y-6 p-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-slate-900">Confirmá tu email</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Te enviamos un código de 6 dígitos a {form.email}.
+          </p>
+        </div>
+
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {aviso && (
+          <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+            {aviso}
+          </div>
+        )}
+
+        <form onSubmit={handleConfirmar} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Código</label>
+            <input
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              inputMode="numeric"
+              maxLength={6}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-center text-xl tracking-widest text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={enviando || codigo.length !== 6}
+            className="w-full rounded-xl bg-indigo-600 py-2.5 text-center font-medium text-white transition hover:bg-indigo-500 disabled:opacity-50"
+          >
+            {enviando ? 'Confirmando...' : 'Confirmar'}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-slate-600">
+          ¿No llegó?{' '}
+          <button type="button" onClick={handleReenviar} className="font-semibold text-indigo-600 hover:text-indigo-500">
+            Reenviar código
+          </button>
+          {' · '}
+          <button type="button" onClick={() => { setPaso(1); setError(''); setAviso(''); }} className="font-semibold text-indigo-600 hover:text-indigo-500">
+            Cambiar email
+          </button>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-md space-y-6 p-6">
@@ -104,7 +197,7 @@ function Registro() {
           disabled={enviando}
           className="w-full rounded-xl bg-indigo-600 py-2.5 text-center font-medium text-white transition hover:bg-indigo-500 disabled:opacity-50"
         >
-          {enviando ? 'Creando cuenta...' : 'Registrarme'}
+          {enviando ? 'Enviando código...' : 'Registrarme'}
         </button>
       </form>
 

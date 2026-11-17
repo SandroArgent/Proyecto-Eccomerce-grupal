@@ -8,14 +8,34 @@ export const loginUsuario = async (email, contraseña) => {
   return api.post('/auth/usuario/login', { email, contraseña });
 };
 
-// POST /api/auth/usuario/registro -> Registra un nuevo usuario.
+// POST /api/auth/usuario/registro -> Paso 1: valida los datos y manda un código al email.
 export const registrarUsuario = async ({ nombre, apellido, email, contraseña }) => {
   return api.post('/auth/usuario/registro', { nombre, apellido, email, contraseña });
+};
+
+// POST /api/auth/usuario/verificar-registro -> Paso 2: confirma el código y crea la cuenta.
+export const verificarRegistroUsuario = async (email, codigo) => {
+  return api.post('/auth/usuario/verificar-registro', { email, codigo });
+};
+
+// POST /api/auth/usuario/reenviar-codigo -> Manda un código nuevo al email.
+export const reenviarCodigoUsuario = async (email) => {
+  return api.post('/auth/usuario/reenviar-codigo', { email });
 };
 
 // GET /api/auth/usuario/perfil -> Obtiene los datos del usuario logueado.
 export const obtenerPerfilUsuario = async () => {
   return api.get('/auth/usuario/perfil');
+};
+
+// PUT /api/auth/usuario/perfil -> Actualiza los datos del usuario logueado.
+export const actualizarPerfilUsuario = async (datos) => {
+  return api.put('/auth/usuario/perfil', datos);
+};
+
+// POST /api/auth/usuario/perfil/verificar-email -> Confirma con el código el cambio de email del perfil.
+export const verificarEmailPerfilUsuario = async (codigo) => {
+  return api.post('/auth/usuario/perfil/verificar-email', { codigo });
 };
 
 // ── MÓDULO B: recuperación de contraseña ──

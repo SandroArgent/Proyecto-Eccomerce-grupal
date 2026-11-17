@@ -216,6 +216,37 @@ export const enviarBienvenida = async (usuario) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────
+// MAIL — CÓDIGO DE CONFIRMACIÓN DE EMAIL (al registrarse)
+// ─────────────────────────────────────────────────────────────────────
+// A diferencia de los otros mails, ESTE sí se espera con "await" desde el
+// controller: si no se pudo enviar, hay que avisarle a la persona.
+// Devuelve true/false (nunca tira error).
+
+export const enviarCodigoVerificacion = async (usuario, codigo) => {
+  try {
+    const nombre = usuario.nombre || 'cliente';
+    const asunto = `Tu código de confirmación: ${codigo}`;
+
+    const texto =
+      `Hola ${nombre},\n\n` +
+      `Tu código para confirmar tu email en ${nombreTienda()} es: ${codigo}\n\n` +
+      `Vence en 10 minutos. Si no fuiste vos, ignorá este mensaje.\n`;
+
+    const html = plantilla({
+      titulo: `Hola, ${nombre}`,
+      cuerpoHtml: `<p>Tu código para confirmar tu email en <strong>${esc(nombreTienda())}</strong> es:</p>
+        <p style="font-size:32px;font-weight:bold;letter-spacing:6px;margin:16px 0;">${esc(codigo)}</p>
+        <p>Vence en 10 minutos. Si no fuiste vos, ignorá este mensaje.</p>`,
+    });
+
+    return await enviarMail({ para: usuario.email, asunto, texto, html });
+  } catch (error) {
+    console.error('❌ Error armando el mail del código:', error.message);
+    return false;
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────
 // 6. MAIL #2 — RECUPERAR CONTRASEÑA
 // ─────────────────────────────────────────────────────────────────────
 // Se llama desde authController.olvideClave.

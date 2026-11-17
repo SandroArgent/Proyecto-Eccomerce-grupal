@@ -32,7 +32,7 @@ function ComprasTable({ compras }) {
   if (compras.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-slate-700 p-8 text-center text-slate-400">
-        No hay compras registradas.
+        No hay ventas registradas.
       </div>
     );
   }

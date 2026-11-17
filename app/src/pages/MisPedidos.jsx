@@ -24,6 +24,29 @@ function MisPedidos() {
     return <p className="p-8 text-center text-slate-500">Todavía no hiciste ninguna compra.</p>;
   }
 
+
+  const claseEstadoEnvio = (estado) => {
+  switch (estado) {
+    case "pendiente":
+      return "bg-yellow-100 text-yellow-800";
+
+    case "preparacion":
+      return "bg-blue-100 text-blue-800";
+
+    case "enviado":
+      return "bg-violet-100 text-violet-800";
+
+    case "entregado":
+      return "bg-green-100 text-green-800";
+
+    case "cancelado":
+      return "bg-red-100 text-red-800";
+
+    default:
+      return "bg-slate-100 text-slate-800";
+  }
+};
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
       <h1 className="mb-6 text-2xl font-bold text-slate-900">Mis pedidos</h1>
@@ -35,7 +58,20 @@ function MisPedidos() {
               <p className="font-semibold text-slate-900">Pedido #{compra.id}</p>
               <p className="text-sm text-slate-500">{new Date(compra.fecha).toLocaleDateString('es-AR')}</p>
             </div>
-            <p className="text-sm text-slate-500">Estado: {compra.estadoPago}</p>
+            <p className="text-sm text-slate-500">Estado de pago: {compra.estadoPago}</p>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-sm text-slate-500">
+                Estado de envío:
+              </span>
+                    
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${claseEstadoEnvio(
+                  compra.estadoEnvio
+                )}`}
+              >
+                {compra.estadoEnvio}
+              </span>
+            </div>
 
             <ul className="mt-2 space-y-1 text-sm text-slate-600">
               {compra.CompraProductos?.map((item) => (
