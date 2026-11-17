@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
   actualizarPerfilUsuario,
+  verificarEmailPerfilUsuario,
 } from '../services/authService.js';
 
 function Perfil() {
@@ -24,6 +25,10 @@ function Perfil() {
 
   const [error, setError] =
     useState('');
+
+  // Si se cambió el email, hay que confirmar con el código que llegó al email nuevo.
+  const [pendiente, setPendiente] = useState(false);
+  const [codigo, setCodigo] = useState('');
 
     // Actualiza los campos del formulario mientras el usuario escribe.
   const handleChange = (e) => {
@@ -49,6 +54,14 @@ function Perfil() {
       const usuarioActualizado =
   await actualizarPerfilUsuario(form);
 
+        // Cambió el email: todavía no se guardó nada, falta ingresar el código.
+        if (usuarioActualizado?.pendiente) {
+          setPendiente(true);
+          setCodigo('');
+          setMensaje(usuarioActualizado.mensaje);
+          return;
+        }
+
         setUsuario(usuarioActualizado);
 
         localStorage.setItem(
@@ -72,6 +85,34 @@ function Perfil() {
         err.message ||
           'No se pudo actualizar el perfil.'
       );
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  // Confirma el código y recién ahí se guardan los cambios.
+  const handleConfirmar = async (e) => {
+    e.preventDefault();
+    setMensaje('');
+    setError('');
+
+    try {
+      setGuardando(true);
+      const usuarioActualizado = await verificarEmailPerfilUsuario(codigo);
+
+      setUsuario(usuarioActualizado);
+      localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
+      setForm({
+        nombre: usuarioActualizado.nombre || '',
+        apellido: usuarioActualizado.apellido || '',
+        email: usuarioActualizado.email || '',
+      });
+      setPendiente(false);
+      setCodigo('');
+      setMensaje('Perfil actualizado correctamente.');
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'No se pudo confirmar el código.');
     } finally {
       setGuardando(false);
     }
@@ -158,6 +199,34 @@ function Perfil() {
             : 'Guardar cambios'}
         </button>
       </form>
+
+      {pendiente && (
+        <form
+          onSubmit={handleConfirmar}
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
+          <p className="text-sm text-slate-600">
+            Ingresá el código que te enviamos a {form.email} para confirmar el cambio.
+          </p>
+          <input
+            value={codigo}
+            onChange={(e) => setCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            inputMode="numeric"
+            maxLength={6}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-center text-xl tracking-widest text-slate-900"
+          />
+          <button
+            type="submit"
+            disabled={guardando || codigo.length !== 6}
+            className="w-full rounded-xl bg-indigo-600 py-2.5 font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+          >
+            {guardando ? 'Confirmando...' : 'Confirmar email'}
+          </button>
+          <p className="text-center text-xs text-slate-500">
+            ¿No llegó? Tocá "Guardar cambios" de nuevo para recibir otro código.
+          </p>
+        </form>
+      )}
 
       <button
         onClick={logout}

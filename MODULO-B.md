@@ -3,7 +3,9 @@
 ## Qué hace
 | Mail | Cuándo se dispara | Archivo / función |
 |---|---|---|
-| Bienvenida | Al registrarse | `authController.registrarUsuario` → `enviarBienvenida` |
+| Código de confirmación | Al registrarse (paso 1; la cuenta se crea recién al ingresar el código) | `authController.registrarUsuario` → `enviarCodigoVerificacion`; luego `verificarRegistro` |
+| Código de confirmación (cambio de email) | Al cambiar el email en Mi perfil | `authController.actualizarPerfilUsuario` → `enviarCodigoVerificacion`; se aplica en `verificarEmailPerfil` |
+| Bienvenida | Al confirmar el código | `authController.verificarRegistro` → `enviarBienvenida` |
 | Recuperar contraseña | Al pedir "¿Olvidaste tu contraseña?" | `authController.olvideClave` → `enviarRecuperacionClave` |
 | Pedido nuevo (cliente + admin) | Al confirmar la compra | `compraController.crearCompra` → `notificarPedidoCreado` |
 | Cambio de estado | Cuando el admin cambia el estado | `compraController.actualizarEstadoCompraAdmin` → `notificarCambioEstado` |

@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext.jsx'
 import { AdminAuthProvider } from './context/AdminAuthContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import RutaProtegida from './components/auth/RutaProtegida.jsx'
+import RutaPublica from './components/auth/RutaPublica.jsx'
 import RutaProtegidaAdmin from './components/auth/RutaProtegidaAdmin.jsx'
 import Header from './components/layout/Header.jsx'
 import Footer from './components/layout/Footer.jsx'
@@ -46,8 +47,8 @@ function App() {
                         <Route path="/catalogo" element={<Catalogo />} />
                         <Route path="/productos/:id" element={<ProductoDetalle />} />
                         <Route path="/carrito" element={<Carrito />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/registro" element={<Registro />} />
+                        <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} /> 
+                        <Route path="/registro" element={<RutaPublica><Registro /></RutaPublica>} />
                         {/* MÓDULO B: recuperación de contraseña */}
                         <Route path="/olvide-clave" element={<OlvideClave />} />
                         <Route path="/restablecer-clave" element={<RestablecerClave />} />

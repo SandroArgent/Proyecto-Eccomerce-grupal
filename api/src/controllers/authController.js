@@ -16,7 +16,17 @@ import {
 } from '../utils/auth.js';
 import { Usuario, Administrador, Carrito } from '../models/index.js';
 // MÓDULO B: funciones del servicio de mensajería (ver services/mailService.js).
-import { enviarBienvenida, enviarRecuperacionClave } from '../services/mailService.js';
+import {
+  enviarBienvenida,
+  enviarRecuperacionClave,
+  enviarCodigoVerificacion,
+} from '../services/mailService.js';
+import {
+  emitirCodigo,
+  obtenerPendiente,
+  cancelarPendiente,
+  verificarCodigo,
+} from '../utils/codigosVerificacion.js';
 
 /**
  * loginUsuario
@@ -80,11 +90,9 @@ export const loginUsuario = async (req, res) => {
 };
 
 /**
- * registrarUsuario
- * Crea un usuario nuevo (el hook del modelo Usuario encripta la contraseña
- * automáticamente), le crea un Carrito vacío -porque según el DER la
- * relación Usuario-Carrito es 1:1- y devuelve un token para dejarlo
- * logueado de una.
+ * registrarUsuario (paso 1 del registro)
+ * Valida los datos y le manda un código de 6 dígitos al email. TODAVÍA NO crea
+ * el usuario: eso pasa en verificarRegistro, cuando ingresa el código bien.
  */
 export const registrarUsuario = async (req, res) => {
   try {
@@ -106,6 +114,78 @@ export const registrarUsuario = async (req, res) => {
       });
     }
 
+    const emitido = emitirCodigo({ nombre, apellido, email, contraseña });
+
+    if (!emitido.ok) {
+      return res.status(429).json({
+        estado: false,
+        mensaje: `Esperá ${emitido.esperar} segundos antes de pedir otro código.`,
+      });
+    }
+
+    // Acá SÍ esperamos el envío: si el mail no sale, hay que avisar.
+    const enviado = await enviarCodigoVerificacion({ nombre, email }, emitido.codigo);
+
+    if (!enviado) {
+      cancelarPendiente(email);
+      return res.status(502).json({
+        estado: false,
+        mensaje: 'No pudimos enviar el código. Revisá que el email sea correcto e intentá de nuevo.',
+      });
+    }
+
+    res.json({
+      estado: true,
+      pendiente: true,
+      mensaje: 'Te enviamos un código de 6 dígitos a tu email.',
+    });
+  } catch (error) {
+    console.error('Error en registrarUsuario:', error);
+    res.status(500).json({
+      estado: false,
+      mensaje: 'Error al registrar usuario',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * verificarRegistro (paso 2 del registro)
+ * Recibe { email, codigo }. Si el código es correcto, crea el usuario (el hook
+ * del modelo encripta la contraseña), le crea un Carrito vacío -relación 1:1
+ * del DER- y devuelve un token para dejarlo logueado de una.
+ *
+ * Los errores devuelven 400 y NO 401: el interceptor de Axios del frontend
+ * manda al login ante cualquier 401/403.
+ */
+export const verificarRegistro = async (req, res) => {
+  try {
+    const { email, codigo } = req.body;
+
+    if (!email || !codigo) {
+      return res.status(400).json({
+        estado: false,
+        mensaje: 'Debe proporcionar email y código',
+      });
+    }
+
+    const resultado = verificarCodigo(email, codigo);
+
+    if (!resultado.ok) {
+      return res.status(400).json({ estado: false, mensaje: resultado.motivo });
+    }
+
+    const { nombre, apellido, contraseña } = resultado.datos;
+
+    // Por si el email se registró por otro lado mientras esperaba el código.
+    const existe = await Usuario.findOne({ where: { email } });
+    if (existe) {
+      return res.status(400).json({
+        estado: false,
+        mensaje: 'El email ya está registrado',
+      });
+    }
+
     // rol: 'cliente' por defecto. Nunca confiamos en un rol que venga
     // en el body, porque cualquiera podría mandar { rol: 'admin' }.
     const usuario = await Usuario.create({
@@ -116,16 +196,10 @@ export const registrarUsuario = async (req, res) => {
       rol: 'cliente',
     });
 
-    // Creamos el carrito vacío asociado, para que el usuario ya tenga
-    // uno disponible apenas se registra (relación 1:1 del DER).
     await Carrito.create({ idUsuario: usuario.id });
 
-    // MÓDULO B — mail de bienvenida.
-    // OJO: no lleva "await" a propósito. Mandar un mail puede tardar unos
-    // segundos; con "await" el usuario se quedaría esperando en la pantalla
-    // de registro hasta que el mail salga. Sin "await" la función arranca,
-    // y el código sigue de largo respondiendo al instante. Es seguro porque
-    // enviarBienvenida() nunca tira errores (los captura ella misma).
+    // MÓDULO B — mail de bienvenida (sin "await" a propósito: nunca tira errores
+    // y así la respuesta no espera al mail).
     enviarBienvenida(usuario);
 
     const token = generarToken({ id: usuario.id }, JWT_SECRET_USUARIO);
@@ -143,10 +217,55 @@ export const registrarUsuario = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error en registrarUsuario:', error);
+    console.error('Error en verificarRegistro:', error);
     res.status(500).json({
       estado: false,
-      mensaje: 'Error al registrar usuario',
+      mensaje: 'Error al confirmar el registro',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * reenviarCodigo
+ * Recibe { email } y manda un código nuevo usando los datos del registro pendiente.
+ */
+export const reenviarCodigo = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const datos = email ? obtenerPendiente(email) : null;
+
+    if (!datos) {
+      return res.status(400).json({
+        estado: false,
+        mensaje: 'No hay un registro pendiente para ese email. Volvé a completar el formulario.',
+      });
+    }
+
+    const emitido = emitirCodigo(datos);
+
+    if (!emitido.ok) {
+      return res.status(429).json({
+        estado: false,
+        mensaje: `Esperá ${emitido.esperar} segundos antes de pedir otro código.`,
+      });
+    }
+
+    const enviado = await enviarCodigoVerificacion(datos, emitido.codigo);
+
+    if (!enviado) {
+      return res.status(502).json({
+        estado: false,
+        mensaje: 'No pudimos enviar el código. Intentá de nuevo en unos minutos.',
+      });
+    }
+
+    res.json({ estado: true, mensaje: 'Te enviamos un código nuevo.' });
+  } catch (error) {
+    console.error('Error en reenviarCodigo:', error);
+    res.status(500).json({
+      estado: false,
+      mensaje: 'No se pudo reenviar el código',
       error: error.message,
     });
   }
@@ -178,54 +297,142 @@ export const perfilUsuario = async (req, res) => {
 };
 
 
-export const actualizarPerfilUsuario = async (
-      req,
-      res
-    ) => {
-      try {
-        const usuario = await Usuario.findByPk(
-          req.usuario.id
-        );
-      
-        if (!usuario) {
-          return res.status(404).json({
-            estado: false,
-            mensaje: 'Usuario no encontrado',
-          });
-        }
-      
-        const {
-          nombre,
-          apellido,
-          email,
-        } = req.body;
-      
-        await usuario.update({
-          nombre,
-          apellido,
-          email,
-        });
-      
-        res.json({
-          estado: true,
-          mensaje:
-            'Perfil actualizado correctamente',
-          data: usuario,
-        });
-      } catch (error) {
-        console.error(
-          'Error en actualizarPerfilUsuario:',
-          error
-        );
-      
-        res.status(500).json({
+/**
+ * actualizarPerfilUsuario
+ * Actualiza nombre, apellido y email del usuario logueado.
+ * Si el EMAIL cambió, no se guarda todavía: se manda un código al email nuevo
+ * (para comprobar que existe y es suyo) y los cambios se aplican recién en
+ * verificarEmailPerfil, al ingresar el código. Si no cambió el email, se
+ * guarda directo.
+ */
+export const actualizarPerfilUsuario = async (req, res) => {
+  try {
+    const usuario = await Usuario.findByPk(req.usuario.id);
+
+    if (!usuario) {
+      return res.status(404).json({
+        estado: false,
+        mensaje: 'Usuario no encontrado',
+      });
+    }
+
+    const { nombre, apellido, email } = req.body;
+    const emailCambio =
+      email !== undefined &&
+      String(email).trim().toLowerCase() !== String(usuario.email).trim().toLowerCase();
+
+    if (emailCambio) {
+      if (!String(email).trim()) {
+        return res.status(400).json({ estado: false, mensaje: 'El email no puede estar vacío' });
+      }
+
+      const enUso = await Usuario.findOne({ where: { email } });
+      if (enUso && enUso.id !== usuario.id) {
+        return res.status(400).json({
           estado: false,
-          mensaje:
-            'Error al actualizar perfil',
-          error: error.message,
+          mensaje: 'El email ya está registrado',
         });
       }
-    };
+
+      const datos = {
+        nombre: nombre ?? usuario.nombre,
+        apellido: apellido ?? usuario.apellido,
+        nuevoEmail: String(email).trim(),
+      };
+      const emitido = emitirCodigo(datos, usuario.id, 'perfil');
+
+      if (!emitido.ok) {
+        return res.status(429).json({
+          estado: false,
+          mensaje: `Esperá ${emitido.esperar} segundos antes de pedir otro código.`,
+        });
+      }
+
+      const enviado = await enviarCodigoVerificacion(
+        { nombre: datos.nombre, email: datos.nuevoEmail },
+        emitido.codigo
+      );
+
+      if (!enviado) {
+        cancelarPendiente(usuario.id, 'perfil');
+        return res.status(502).json({
+          estado: false,
+          mensaje: 'No pudimos enviar el código. Revisá que el email sea correcto e intentá de nuevo.',
+        });
+      }
+
+      // Sin campo "data" a propósito: así el interceptor de Axios entrega el
+      // objeto completo y el frontend puede ver "pendiente".
+      return res.json({
+        estado: true,
+        pendiente: true,
+        mensaje: `Te enviamos un código de 6 dígitos a ${datos.nuevoEmail}.`,
+      });
+    }
+
+    await usuario.update({ nombre, apellido });
+
+    res.json({
+      estado: true,
+      mensaje: 'Perfil actualizado correctamente',
+      data: await Usuario.findByPk(usuario.id, { attributes: { exclude: ['contraseña'] } }),
+    });
+  } catch (error) {
+    console.error('Error en actualizarPerfilUsuario:', error);
+
+    res.status(500).json({
+      estado: false,
+      mensaje: 'Error al actualizar perfil',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * verificarEmailPerfil
+ * Recibe { codigo }. Si es correcto, aplica el cambio de email (y de
+ * nombre/apellido si venían en la misma edición).
+ * Errores en 400 (no 401) por el interceptor de Axios del frontend.
+ */
+export const verificarEmailPerfil = async (req, res) => {
+  try {
+    const { codigo } = req.body;
+
+    if (!codigo) {
+      return res.status(400).json({ estado: false, mensaje: 'Debe proporcionar el código' });
+    }
+
+    const resultado = verificarCodigo(req.usuario.id, codigo, 'perfil');
+
+    if (!resultado.ok) {
+      return res.status(400).json({ estado: false, mensaje: resultado.motivo });
+    }
+
+    const { nombre, apellido, nuevoEmail } = resultado.datos;
+
+    // Por si alguien tomó ese email mientras esperaba el código.
+    const enUso = await Usuario.findOne({ where: { email: nuevoEmail } });
+    if (enUso && enUso.id !== req.usuario.id) {
+      return res.status(400).json({ estado: false, mensaje: 'El email ya está registrado' });
+    }
+
+    const usuario = await Usuario.findByPk(req.usuario.id);
+    await usuario.update({ nombre, apellido, email: nuevoEmail });
+
+    res.json({
+      estado: true,
+      mensaje: 'Perfil actualizado correctamente',
+      data: await Usuario.findByPk(usuario.id, { attributes: { exclude: ['contraseña'] } }),
+    });
+  } catch (error) {
+    console.error('Error en verificarEmailPerfil:', error);
+    res.status(500).json({
+      estado: false,
+      mensaje: 'Error al confirmar el email',
+      error: error.message,
+    });
+  }
+};
 
 /**
  * loginAdmin
