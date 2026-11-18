@@ -6,6 +6,7 @@ import { TrashIcon } from "@heroicons/react/24/solid";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { resolverUrlImagen } from '../utils/imagenUrl.js';
 
 function Carrito() {
   const { items, actualizarCantidad, quitarItem, subtotal } = useCart();
@@ -43,7 +44,7 @@ function Carrito() {
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
               {item.imagen && (
                 <img
-                  src={item.imagen}
+                  src={resolverUrlImagen(item.imagen)}
                   alt={item.nombre}
                   className="h-full w-full object-cover"
                 />

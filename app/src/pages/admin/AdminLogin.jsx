@@ -2,12 +2,21 @@
 // Le pega a /api/auth/admin/login (no a /api/auth/usuario/login).
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../context/AdminAuthContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 function AdminLogin() {
   const navigate = useNavigate();
   const { login } = useAdminAuth();
+
+   // Sesión de usuario cliente (la de la tienda)
+  const {
+    isAuthenticated: hayUsuario,
+    usuario,
+    logout: cerrarSesionUsuario,
+    cargando: cargandoUsuario,
+  } = useAuth();
 
   const [email, setEmail] = useState('');
   const [contraseña, setContraseña] = useState('');
@@ -34,6 +43,33 @@ function AdminLogin() {
       setEnviando(false);
     }
   };
+
+
+    if (cargandoUsuario) return null;
+
+  // Si hay sesión de usuario, primero hay que cerrarla.
+  if (hayUsuario) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-900 p-6">
+        <div className="w-full max-w-sm space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-6 text-center">
+          <h1 className="text-xl font-bold text-white">Ya tenés una sesión de usuario</h1>
+          <p className="text-sm text-slate-400">
+            Estás conectado como {usuario?.email}. Cerrá esa sesión para ingresar como administrador.
+          </p>
+          <button
+            type="button"
+            onClick={cerrarSesionUsuario}
+            className="w-full rounded-xl bg-indigo-600 py-2.5 font-medium text-white transition hover:bg-indigo-500"
+          >
+            Cerrar sesión de usuario
+          </button>
+          <Link to="/" className="block text-sm text-slate-400 hover:text-white">
+            Volver a la tienda
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-900 p-6">
