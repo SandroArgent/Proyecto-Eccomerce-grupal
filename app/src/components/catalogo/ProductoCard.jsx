@@ -3,13 +3,14 @@
 // carrito, no sabe nada de contextos ni de la API.
 
 import { Link } from 'react-router-dom';
+import { resolverUrlImagen } from '../../utils/imagenUrl.js';
 
 function ProductoCard({ producto, onAgregarAlCarrito }) {
   const sinStock = producto.stock <= 0;
 
-  const imagenPrincipal =
-  producto.ImagenProductos?.[0]?.urlImagen  ||
-  producto.imagen;
+  const imagenPrincipal = resolverUrlImagen(
+    producto.ImagenProductos?.[0]?.urlImagen || producto.imagen
+  );
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">

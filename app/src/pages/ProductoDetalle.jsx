@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { obtenerProductoPorId } from '../services/catalogoService.js';
 import { useCart } from '../context/CartContext.jsx';
+import { resolverUrlImagen } from '../utils/imagenUrl.js';
 
 function ProductoDetalle() {
   const { id } = useParams();
@@ -24,7 +25,7 @@ function ProductoDetalle() {
       try {
         const data = await obtenerProductoPorId(id);
         setProducto(data);
-        setImagenActiva(data.imagen || data.ImagenProductos?.[0]?.urlImagen || null);
+        setImagenActiva(resolverUrlImagen(data.imagen || data.ImagenProductos?.[0]?.urlImagen));
       } catch (err) {
         console.error('Error al cargar el producto:', err);
         setError('No se pudo cargar el producto.');
@@ -54,10 +55,13 @@ function ProductoDetalle() {
   // Todas las imágenes: la principal (producto.imagen) + la galería
   // (ImagenProductos, la relación 1:n del DER). Sequelize pone el alias
   // en plural automáticamente porque la asociación no definió un "as".
+  // La principal suele estar también en la galería, así que se quitan repetidas.
   const galeria = [
-    ...(producto.imagen ? [producto.imagen] : []),
-    ...(producto.ImagenProductos?.map((img) => img.urlImagen) || []),
-  ];
+    ...new Set([
+      producto.imagen,
+      ...(producto.ImagenProductos?.map((img) => img.urlImagen) || []),
+    ].filter(Boolean)),
+  ].map(resolverUrlImagen);
 
   const sinStock = producto.stock <= 0;
 

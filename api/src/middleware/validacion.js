@@ -1,3 +1,5 @@
+import { borrarArchivosSubidos } from '../utils/archivos.js';
+
 // validacion.js contiene middlewares que revisan los datos que llegan en
 // el body ANTES de que el controller intente guardarlos. Si algo no es
 // válido, cortan la petición con un 400 y un mensaje claro — el
@@ -46,6 +48,9 @@ export const validarProducto = (req, res, next) => {
   }
 
   if (errores.length > 0) {
+    // Multer ya guardó las imágenes en disco antes de llegar acá:
+    // si los datos son inválidos, las borramos para no dejar basura.
+    borrarArchivosSubidos(req.files);
     return res.status(400).json({ estado: false, mensaje: 'Datos inválidos', errores });
   }
 

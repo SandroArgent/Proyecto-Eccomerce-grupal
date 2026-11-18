@@ -29,3 +29,13 @@ https://myaccount.google.com/apppasswords?utm_source=chatgpt.com
 
 Para crear un admin desde el Seeder. EJEMPLO
 node src/scripts/seedAdmin.js "Sandro" "sandroadmin@gmail.com" "Admin123456"
+
+SUBIDA DE IMÁGENES (Multer)
+Instalar la dependencia una vez: npm install (multer ya está en package.json).
+Las imágenes de productos se guardan en api/uploads/productos/ (la carpeta se crea sola
+y está en .gitignore, así que cada integrante tiene sus propias imágenes locales).
+Se sirven en http://localhost:3000/uploads/productos/<archivo>.
+POST /api/productos y PUT /api/productos/:id ahora reciben multipart/form-data:
+  - campos de texto: nombre, precio, stock, etc.
+  - imagenes: hasta 5 archivos (JPG, PNG, WEBP o GIF, máx. 5 MB c/u)
+  - imagenesEliminar (solo PUT): JSON con los ids de imágenes a quitar, ej. "[3,5]"

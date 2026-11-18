@@ -1,4 +1,5 @@
 import { ImagenProducto } from '../models/index.js';
+import { borrarArchivoPorUrl } from '../utils/archivos.js';
 
 export const getImagenProductos = async (req, res) => {
   const imagenProductos = await ImagenProducto.findAll();
@@ -27,5 +28,6 @@ export const eliminarImagenProducto = async (req, res) => {
   const imagenProducto = await ImagenProducto.findByPk(req.params.id);
   if (!imagenProducto) return res.status(404).json({ mensaje: 'ImagenProducto no encontrado' });
   await imagenProducto.destroy();
+  await borrarArchivoPorUrl(imagenProducto.urlImagen); // también lo borra del disco
   res.json({ mensaje: 'ImagenProducto eliminado' });
 };

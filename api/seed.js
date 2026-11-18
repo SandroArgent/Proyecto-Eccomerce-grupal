@@ -13,7 +13,7 @@ const run = async () => {
     // Crear admin inicial
     const admin = await Administrador.create({
       nombre: "Ignacio",
-      email: "admin@tienda.com",
+      email: "brasescoignaciogabriel@gmail.com",
       contraseña: "admin123" // se encripta automáticamente por el hook
     });
 
