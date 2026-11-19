@@ -65,6 +65,8 @@ function ProductoDetalle() {
 
   const sinStock = producto.stock <= 0;
 
+  console.log(producto);
+
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
       <div className="grid gap-8 md:grid-cols-2">
@@ -97,7 +99,11 @@ function ProductoDetalle() {
             <p className="text-xs uppercase tracking-wide text-slate-400">{producto.Categoria.nombre}</p>
           )}
           <h1 className="mt-1 text-3xl font-bold text-slate-900">{producto.nombre}</h1>
-          {producto.marca && <p className="mt-1 text-slate-500">{producto.marca}</p>}
+          {(producto.Marca?.nombre || producto.marca) && (
+            <p className="mt-1 text-slate-500">
+              {producto.Marca?.nombre || producto.marca}
+            </p>
+          )}
 
           <p className="mt-4 text-3xl font-bold text-slate-900">
             ${Number(producto.precio).toLocaleString('es-AR')}

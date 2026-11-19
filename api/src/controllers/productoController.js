@@ -8,11 +8,18 @@ import { urlPublica, borrarArchivoPorUrl, borrarArchivosSubidos } from '../utils
 // por nombre, y paginación. Se usa tanto desde la tienda pública (catálogo
 // y home) como desde el panel de admin (que simplemente pide un límite alto).
 export const getProductos = async (req, res) => {
-  const { categoria, q, page = 1, limit = 12, destacado } = req.query;
+  const { categoria, marca, q, page = 1, limit = 12, destacado } = req.query;
+  console.log('Marca recibida:', marca);
 
   const where = {};
+
+  if (marca) {
+    where.idMarca = marca;
+  }
   if (categoria) {
   const categoriaId = Number(categoria);
+
+  console.log('Where final:', where);
 
   const categoriasHijas = await Categoria.findAll({
     where: {
@@ -118,7 +125,27 @@ export const crearProducto = async (req, res) => {
 
   try {
     const producto = await sequelize.transaction(async (t) => {
-      const nuevo = await Producto.create(prepararDatosProducto(req.body), { transaction: t });
+
+      const datos =
+        prepararDatosProducto(req.body);
+
+      if (datos.idMarca) {
+        const marca =
+          await Marca.findByPk(
+            datos.idMarca
+          );
+        
+        if (marca) {
+          datos.marca =
+            marca.nombre;
+        }
+      }
+
+      const nuevo =
+        await Producto.create(
+          datos,
+          { transaction: t }
+        );
 
       for (const archivo of archivos) {
         await ImagenProducto.create(
@@ -173,7 +200,26 @@ export const actualizarProducto = async (req, res) => {
     }
 
     await sequelize.transaction(async (t) => {
-      await producto.update(prepararDatosProducto(req.body), { transaction: t });
+
+
+      const datos = prepararDatosProducto(req.body);
+
+        if (datos.idMarca) {
+          const marca =
+            await Marca.findByPk(
+              datos.idMarca
+            );
+          
+          if (marca) {
+            datos.marca =
+              marca.nombre;
+          }
+        }
+
+        await producto.update(
+          datos,
+          { transaction: t }
+        );
 
       if (aBorrar.length > 0) {
         await ImagenProducto.destroy({

@@ -56,14 +56,10 @@ function ProductosTable({ productos, categorias, onEditar, onEliminar }) {
   const productosFiltrados = productos.filter((p) => {
     return (
       p.nombre.toLowerCase().includes(busqueda.toLowerCase()) &&
-      (marcaFiltro ? p.marca === marcaFiltro : true) &&
-      (categoriaFiltro
-  ? categoriasPermitidas.includes(
-      p.idCategoria
-    )
-  : true)
-    );
-  });
+      (marcaFiltro ? (p.Marca?.nombre || p.marca) === marcaFiltro : true) &&
+      (categoriaFiltro ? categoriasPermitidas.includes(p.idCategoria) : true)
+        );
+      });
 
   // Paginación
   const indiceUltimo = paginaActual * productosPorPagina;

@@ -30,7 +30,11 @@ function ProductoCard({ producto, onAgregarAlCarrito }) {
         <Link to={`/productos/${producto.id}`} className="font-medium text-slate-900 hover:text-indigo-600">
           {producto.nombre}
         </Link>
-        {producto.marca && <p className="text-xs text-slate-500">{producto.marca}</p>}
+        {(producto.Marca?.nombre || producto.marca) && (
+          <p className="text-xs text-slate-500">
+            {producto.Marca?.nombre || producto.marca}
+          </p>
+        )}
 
         <div className="mt-auto flex items-center justify-between pt-2">
           <span className="text-lg font-bold text-slate-900">
