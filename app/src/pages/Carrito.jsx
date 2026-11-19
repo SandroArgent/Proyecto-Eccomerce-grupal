@@ -105,7 +105,7 @@ function Carrito() {
       {/* Checkout */}
       <button
         onClick={handleCheckout}
-        className="mt-6 w-full rounded-xl bg-indigo-600 py-3 font-medium text-white transition hover:bg-indigo-500"
+        className="mt-6 w-full rounded-xl bg-indigo-700 py-3 font-medium text-white transition hover:bg-indigo-500"
       >
         Finalizar compra
       </button>

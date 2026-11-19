@@ -83,7 +83,7 @@ function Login() {
         <button
           type="submit"
           disabled={enviando}
-          className="w-full rounded-xl bg-indigo-600 py-2.5 text-center font-medium text-white transition hover:bg-indigo-500 disabled:opacity-50"
+          className="w-full rounded-xl bg-indigo-700 py-2.5 text-center font-medium text-white transition hover:bg-indigo-500 disabled:opacity-50"
         >
           {enviando ? 'Iniciando sesión...' : 'Ingresar'}
         </button>

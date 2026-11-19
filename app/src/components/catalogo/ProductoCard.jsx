@@ -43,7 +43,7 @@ function ProductoCard({ producto, onAgregarAlCarrito }) {
           <button
             onClick={() => onAgregarAlCarrito(producto)}
             disabled={sinStock}
-            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="rounded-lg bg-indigo-700 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             {sinStock ? 'Sin stock' : 'Agregar'}
           </button>

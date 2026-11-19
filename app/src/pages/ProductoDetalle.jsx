@@ -136,7 +136,7 @@ function ProductoDetalle() {
               />
               <button
                 onClick={handleAgregar}
-                className="flex-1 rounded-xl bg-indigo-600 py-3 font-medium text-white transition hover:bg-indigo-500"
+                className="flex-1 rounded-xl bg-indigo-700 py-3 font-medium text-white transition hover:bg-indigo-500"
               >
                 {agregado ? '¡Agregado!' : 'Agregar al carrito'}
               </button>

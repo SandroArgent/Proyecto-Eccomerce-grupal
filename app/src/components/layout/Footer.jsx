@@ -8,11 +8,66 @@
 
 function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-400">
-      <p>© {new Date().getFullYear()} Ecommerce — Proyecto Integrador</p>
+    <footer className="bg-indigo-900 text-white ">
+      <div className="mx-auto max-w-6xl px-6 py-10">
+        <div className="grid gap-8 md:grid-cols-4">
+
+          <div>
+            <h3 className="mb-3 text-lg font-bold">
+              SONORA MUSIC STORE
+            </h3>
+
+            <p className="text-sm text-indigo-100">
+              Instrumentos musicales,
+              audio profesional y
+              accesorios para músicos.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="mb-3 font-semibold">
+              Nosotros
+            </h4>
+
+            <ul className="space-y-2 text-sm text-indigo-100">
+              <li>Contacto</li>
+              <li>Locales</li>
+              <li>Sobre nosotros</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="mb-3 font-semibold">
+              Ayuda
+            </h4>
+
+            <ul className="space-y-2 text-sm text-indigo-100">
+              <li>Preguntas frecuentes</li>
+              <li>Seguimiento</li>
+              <li>Medios de pago</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="mb-3 font-semibold">
+              Contacto
+            </h4>
+
+            <ul className="space-y-2 text-sm text-indigo-100">
+              <li>WhatsApp</li>
+              <li>Instagram</li>
+              <li>YouTube</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <div className="mt-8 border-t border-indigo-500 pt-4 text-center text-sm text-indigo-200">
+          © {new Date().getFullYear()} Sonora Music Store
+        </div>
+      </div>
     </footer>
   );
 }
 
 export default Footer;
-

@@ -41,7 +41,7 @@ function Inicio() {
         </p>
         <Link
           to="/catalogo"
-          className="mt-6 inline-block rounded-xl bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-500"
+          className="mt-6 inline-block rounded-xl bg-indigo-700 px-6 py-3 font-medium text-white hover:bg-indigo-500"
         >
           Explorar instrumentos
         </Link>
