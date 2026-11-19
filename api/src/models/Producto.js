@@ -8,6 +8,7 @@ export default (sequelize) => {
     precio: DataTypes.DECIMAL(10, 2),
     stock: DataTypes.INTEGER,
     marca: DataTypes.STRING,
+    idMarca: DataTypes.INTEGER,
     destacado: DataTypes.BOOLEAN,
     caracteristicasDetalladas: DataTypes.TEXT,
     imagen: DataTypes.STRING,

@@ -21,7 +21,7 @@ function ProductoForm({ producto, categorias, onGuardar, onCancelar, guardando, 
     descripcion: producto?.descripcion || '',
     precio: producto?.precio ?? '',
     stock: producto?.stock ?? '',
-    marca: producto?.marca || '',
+     idMarca: producto?.idMarca || '',
     destacado: producto?.destacado || false,
     idCategoria: producto?.idCategoria || '',
   });
@@ -193,8 +193,8 @@ const quitarExistente = (id) => {
     Marca
   </label>
   <select
-    name="marca"
-    value={form.marca}
+    name="idMarca"
+    value={form.idMarca}
     onChange={handleChange}
     className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
   >
@@ -202,7 +202,7 @@ const quitarExistente = (id) => {
    {marcas.map((marca) => (
       <option
         key={marca.id}
-        value={marca.nombre}
+        value={marca.id}
       >
         {marca.nombre}
       </option>

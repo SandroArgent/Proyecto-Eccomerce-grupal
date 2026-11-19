@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { sequelize, Producto, ImagenProducto, Categoria } from '../models/index.js';
+import { sequelize, Producto, ImagenProducto, Categoria,  Marca } from '../models/index.js';
 import { MAX_IMAGENES_POR_PRODUCTO } from '../middleware/upload.js';
 import { urlPublica, borrarArchivoPorUrl, borrarArchivosSubidos } from '../utils/archivos.js';
 
@@ -38,7 +38,14 @@ export const getProductos = async (req, res) => {
 
   const { rows: productos, count: total } = await Producto.findAndCountAll({
     where,
-    include: [{ model: ImagenProducto }],
+    include: [
+               { model: ImagenProducto },
+                 
+               {
+                 model: Marca,
+                 as: 'Marca',
+               },
+             ],
     limit: limitNum,
     offset,
     order: [['id', 'DESC']],
@@ -59,7 +66,19 @@ export const getProductos = async (req, res) => {
 // GET /productos/:id — detalle individual, con galería de imágenes y categoría.
 export const getProductoPorId = async (req, res) => {
   const producto = await Producto.findByPk(req.params.id, {
-    include: [{ model: ImagenProducto }, { model: Categoria, as: 'Categoria' }],
+    include: [
+               { model: ImagenProducto },
+                 
+               {
+                 model: Categoria,
+                 as: 'Categoria',
+               },
+             
+               {
+                 model: Marca,
+                 as: 'Marca',
+               },
+             ],
   });
   if (!producto) {
     return res.status(404).json({ estado: false, mensaje: 'Producto no encontrado' });

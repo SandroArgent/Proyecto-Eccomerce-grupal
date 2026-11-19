@@ -60,6 +60,16 @@ Producto.belongsTo(Categoria, { foreignKey: 'idCategoria', as: 'Categoria' });
 Categoria.hasMany(Categoria, { as: 'subcategorias', foreignKey: 'idCategoriaPadre' });
 Categoria.belongsTo(Categoria, { as: 'categoriaPadre', foreignKey: 'idCategoriaPadre' });
 
+// Marca - Producto (1:n)
+Marca.hasMany(Producto, {
+  foreignKey: 'idMarca',
+});
+
+Producto.belongsTo(Marca, {
+  foreignKey: 'idMarca',
+  as: 'Marca',
+});
+
 // Administrador - Producto (1:n)
 Administrador.hasMany(Producto, { foreignKey: 'idAdministrador' });
 Producto.belongsTo(Administrador, { foreignKey: 'idAdministrador' });
