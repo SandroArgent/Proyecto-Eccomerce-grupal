@@ -3,10 +3,17 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useCart } from '../../context/CartContext.jsx';
+import { useState } from 'react';
+import {
+  Bars3Icon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 
 function Header() {
   const { usuario, isAuthenticated, logout } = useAuth();
   const { cantidadTotal } = useCart();
+  const [menuAbierto, setMenuAbierto] =
+  useState(false);
 
   const linkClass = ({ isActive }) =>
     `rounded-lg px-3 py-2 text-sm font-medium transition ${isActive ? 'bg-indigo-700 text-white' : 'text-slate-600 hover:bg-slate-100'
@@ -31,7 +38,7 @@ function Header() {
   </div>
 </NavLink>
 
-        <nav className="flex items-center gap-2">
+        <nav className="hidden md:flex items-center gap-2">
           <NavLink to="/" end className={linkClass}>Inicio</NavLink>
           <NavLink to="/catalogo" className={linkClass}>Catálogo</NavLink>
 
@@ -67,7 +74,117 @@ function Header() {
             </>
           )}
         </nav>
+
+        <button
+  onClick={() =>
+    setMenuAbierto(!menuAbierto)
+  }
+  className="md:hidden"
+>
+  {menuAbierto ? (
+    <XMarkIcon className="h-6 w-6" />
+  ) : (
+    <Bars3Icon className="h-6 w-6" />
+  )}
+</button>
+
       </div>
+
+      {menuAbierto && (
+  <div className="border-t border-slate-200 bg-white md:hidden">
+    <nav className="flex flex-col p-4">
+
+      <NavLink
+        to="/"
+        className={linkClass}
+        onClick={() =>
+          setMenuAbierto(false)
+        }
+      >
+        Inicio
+      </NavLink>
+
+      <NavLink
+        to="/catalogo"
+        className={linkClass}
+        onClick={() =>
+          setMenuAbierto(false)
+        }
+      >
+        Catálogo
+      </NavLink>
+
+      {isAuthenticated && (
+        <NavLink
+          to="/pedidos"
+          className={linkClass}
+          onClick={() =>
+            setMenuAbierto(false)
+          }
+        >
+          Mis pedidos
+        </NavLink>
+      )}
+
+      <NavLink
+        to="/carrito"
+        className={linkClass}
+        onClick={() =>
+          setMenuAbierto(false)
+        }
+      >
+        Carrito
+      </NavLink>
+
+      {isAuthenticated ? (
+        <>
+          <NavLink
+            to="/perfil"
+            className={linkClass}
+            onClick={() =>
+              setMenuAbierto(false)
+            }
+          >
+            Hola, {usuario?.nombre}
+          </NavLink>
+
+          <button
+            onClick={() => {
+              logout();
+              setMenuAbierto(false);
+            }}
+            className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-left text-sm"
+          >
+            Salir
+          </button>
+        </>
+      ) : (
+        <>
+          <NavLink
+            to="/login"
+            className={linkClass}
+            onClick={() =>
+              setMenuAbierto(false)
+            }
+          >
+            Ingresar
+          </NavLink>
+
+          <NavLink
+            to="/registro"
+            className={linkClass}
+            onClick={() =>
+              setMenuAbierto(false)
+            }
+          >
+            Registrarse
+          </NavLink>
+        </>
+      )}
+    </nav>
+  </div>
+)}
+
     </header>
   );
 }

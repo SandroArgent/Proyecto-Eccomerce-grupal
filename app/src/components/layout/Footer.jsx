@@ -24,41 +24,7 @@ function Footer() {
             </p>
           </div>
 
-          <div>
-            <h4 className="mb-3 font-semibold">
-              Nosotros
-            </h4>
-
-            <ul className="space-y-2 text-sm text-indigo-100">
-              <li>Contacto</li>
-              <li>Locales</li>
-              <li>Sobre nosotros</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-3 font-semibold">
-              Ayuda
-            </h4>
-
-            <ul className="space-y-2 text-sm text-indigo-100">
-              <li>Preguntas frecuentes</li>
-              <li>Seguimiento</li>
-              <li>Medios de pago</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-3 font-semibold">
-              Contacto
-            </h4>
-
-            <ul className="space-y-2 text-sm text-indigo-100">
-              <li>WhatsApp</li>
-              <li>Instagram</li>
-              <li>YouTube</li>
-            </ul>
-          </div>
+          
 
         </div>
 

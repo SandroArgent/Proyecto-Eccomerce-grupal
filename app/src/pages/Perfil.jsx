@@ -119,7 +119,7 @@ function Perfil() {
   };
 
   return (
-    <div className="mx-auto max-w-md space-y-6 p-6">
+    <div className=" mx-auto max-w-md space-y-6 p-6">
       <h1 className="text-3xl font-bold text-slate-900">Mi perfil</h1>
 
       <form
@@ -192,7 +192,7 @@ function Perfil() {
         <button
           type="submit"
           disabled={guardando}
-          className="w-full rounded-xl bg-indigo-600 py-2.5 font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+          className="w-full rounded-xl bg-indigo-700 py-2.5 font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
         >
           {guardando
             ? 'Guardando...'
